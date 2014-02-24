@@ -52,6 +52,12 @@ Lower values are more precise but less friendly for the CPU."
   :type 'string
   )
 
+(defface global-emacs-mode-line
+    '((t ()))
+  "Face used for the mode line (this is incompatibel
+with smart-mode-line)."
+  :group 'global-emacs)
+
 (defvar global-emacs-buffer-message nil)
 (defvar global-emacs-emacsen 1)
 (defvar global-emacs-idle nil)
@@ -124,11 +130,10 @@ Lower values are more precise but less friendly for the CPU."
     "Notify mode-line that an async process run."
     :group 'global-emacs
     :global t
-    :lighter (:eval (if (equal global-emacs-emacsen 1) (propertize (format " [one emacs busy]" global-emacs-emacsen)
-                                'face 'dired-async-mode-message)
-                      (if (> global-emacs-emacsen 1) (propertize (format " [%s emacsen busy]" global-emacs-emacsen)
-                                  'face 'dired-async-mode-message))
-                      ))
+    :lighter (:eval (if (equal global-emacs-emacsen 1) (propertize (format "  [one emacs busy] " global-emacs-emacsen)
+                                                                   'face 'global-emacs-mode-line)
+                      (if (> global-emacs-emacsen 1) (propertize (format "  [%s emacsen busy] " global-emacs-emacsen)
+                                                                 'face 'global-emacs-mode-line))))
     (unless global-emacs-mode
       (let ((visible-bell t)) (ding))))
 
