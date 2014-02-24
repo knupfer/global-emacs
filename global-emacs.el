@@ -6,7 +6,7 @@
     (buffer-string)))
 
 (defvar knu/foobar 1)
-(defvar knu/idle nil)
+(defvar knu/idle t)
 (when (not (file-exists-p "~/global-emacs"))
       (write-region "0" nil "~/global-emacs"))
 
@@ -26,7 +26,16 @@
                                       nil "~/global-emacs")
                                      )))
 
-(run-with-idle-timer 2 t '(lambda () (setq knu/idle t)))
+(run-with-idle-timer 10 t '(lambda () (when (equal (eval knu/idle) nil)
+                                   (setq knu/idle t)
+                                     (write-region 
+                                      (number-to-string
+                                       (-
+                                        (string-to-number
+                                         (get-string-from-file "~/global-emacs"))
+                                        1))
+                                      nil "~/global-emacs")
+                                     )))
 
 ;(add-hook 'post-command-hook '(lambda () (append-to-file (number-to-string (eval knu/foobar)) nil "~/ubl")))
 
