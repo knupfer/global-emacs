@@ -71,7 +71,7 @@ Lower values are more precise but less friendly for the CPU."
      nil global-emacs-process-file)
   (write-region "1" nil global-emacs-process-file))
 
-(add-hook 'pre-command-hook '(lambda () (when (equal (eval knu/idle) t)
+(add-hook 'pre-command-hook '(lambda () (when knu/idle
                                      (setq global-emacs-buffer-message (current-message))
                                      (setq knu/idle nil)
                                      (write-region 
@@ -85,7 +85,7 @@ Lower values are more precise but less friendly for the CPU."
                                      (message global-emacs-buffer-message)
                                      )))
 
-(add-hook 'kill-emacs-hook '(lambda () (when (equal (eval knu/idle) nil)
+(add-hook 'kill-emacs-hook '(lambda () (when (not knu/idle)
                                     (setq knu/idle "exit")
                                     (write-region 
                                      (number-to-string
@@ -97,7 +97,7 @@ Lower values are more precise but less friendly for the CPU."
                                     (message nil)
                                     )))
 
-(run-with-idle-timer global-emacs-idle-time t '(lambda () (when (equal (eval knu/idle) nil)
+(run-with-idle-timer global-emacs-idle-time t '(lambda () (when (not knu/idle)
                                                        (setq global-emacs-buffer-message (current-message))
                                                        (setq knu/idle t)
                                                        (write-region 
