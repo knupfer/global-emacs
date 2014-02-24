@@ -32,6 +32,26 @@
 
 ;;; Code:
 
+(require 'dired-async)
+
+(defgroup global-emacs nil
+  "Unify multiple emacsen by sharing killrings and showing if
+some are busy."
+  )
+
+(defcustom global-emacs-idle-time 2
+  "Time to wait until an idle emacs is declared as idle.
+Lower values are more precise but less friendly for the CPU."
+  :group 'global-emacs
+  :type 'integer
+  )
+
+(defcustom global-emacs-process-file "~/.emacs.d/global-emacs"
+  "File which saves emacs working states."
+  :group 'global-emacs
+  :type 'string
+  )
+
 
 (defun get-string-from-file (filePath)
   "Return filePath's file content."
@@ -40,8 +60,8 @@
     (buffer-string)))
 
 (defvar knu/idle t)
-(when (not (file-exists-p "~/global-emacs"))
-      (write-region "0" nil "~/global-emacs"))
+(when (not (file-exists-p global-emacs-process-file))
+      (write-region "0" nil global-emacs-process-file))
 
 (add-hook 'pre-command-hook '(lambda () (when (equal (eval knu/idle) t)
                                      (setq knu/idle nil)
@@ -49,9 +69,9 @@
                                       (number-to-string
                                        (+
                                         (string-to-number
-                                         (get-string-from-file "~/global-emacs"))
+                                         (get-string-from-file global-emacs-process-file))
                                         1))
-                                      nil "~/global-emacs")
+                                      nil global-emacs-process-file)
                                      )))
 
 (add-hook 'kill-emacs-hook '(lambda () (when (equal (eval knu/idle) nil)
@@ -60,20 +80,20 @@
                                      (number-to-string
                                       (-
                                        (string-to-number
-                                        (get-string-from-file "~/global-emacs"))
+                                        (get-string-from-file global-emacs-process-file))
                                        1))
-                                     nil "~/global-emacs")
+                                     nil global-emacs-process-file)
                                     )))
 
-(run-with-idle-timer 10 t '(lambda () (when (equal (eval knu/idle) nil)
+(run-with-idle-timer global-emacs-idle-time t '(lambda () (when (equal (eval knu/idle) nil)
                                    (setq knu/idle t)
                                      (write-region 
                                       (number-to-string
                                        (-
                                         (string-to-number
-                                         (get-string-from-file "~/global-emacs"))
+                                         (get-string-from-file global-emacs-process-file))
                                         1))
-                                      nil "~/global-emacs")
+                                      nil global-emacs-process-file)
                                      )))
 
 (define-minor-mode dired-async-mode
@@ -82,7 +102,7 @@
   :global t
   :lighter (:eval (propertize (format " [%s Async job(s) running]"
                                       (+ (length (dired-async-processes))
-                                         (string-to-number (get-string-from-file "~/global-emacs"))))
+                                         (string-to-number (get-string-from-file global-emacs-process-file))))
                               'face 'dired-async-mode-message))
   (unless dired-async-mode
     (let ((visible-bell t)) (ding))))
