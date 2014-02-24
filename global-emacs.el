@@ -81,6 +81,7 @@ Lower values are more precise but less friendly for the CPU."
                                          (get-string-from-file global-emacs-process-file))
                                         1))
                                       nil global-emacs-process-file)
+                                     (message nil)
                                      (message global-emacs-buffer-message)
                                      )))
 
@@ -106,6 +107,7 @@ Lower values are more precise but less friendly for the CPU."
                                                            (get-string-from-file global-emacs-process-file))
                                                           1))
                                                         nil global-emacs-process-file)
+                                                       (message nil)
                                                        (message global-emacs-buffer-message)
                                                        )))
 
