@@ -36,21 +36,18 @@
 
 (defgroup global-emacs nil
   "Unify multiple emacsen by sharing killrings and showing if
-some are busy."
-  )
+some are busy.")
 
 (defcustom global-emacs-idle-time 2
   "Time to wait until an idle emacs is declared as idle.
 Lower values are more precise but less friendly for the CPU."
   :group 'global-emacs
-  :type 'integer
-  )
+  :type 'integer)
 
 (defcustom global-emacs-process-file "~/.emacs.d/global-emacs"
   "File which saves emacs working states."
   :group 'global-emacs
-  :type 'string
-  )
+  :type 'string)
 
 (defface global-emacs-mode-line
     '((t ()))
@@ -67,7 +64,6 @@ with smart-mode-line)."
   (with-temp-buffer
     (insert-file-contents filePath)
     (buffer-string)))
-
 
 (if (file-exists-p global-emacs-process-file)
     (write-region 
@@ -90,8 +86,7 @@ with smart-mode-line)."
                                         1))
                                       nil global-emacs-process-file)
                                      (message nil)
-                                     (message global-emacs-buffer-message)
-                                     )))
+                                     (message global-emacs-buffer-message))))
 
 (add-hook 'kill-emacs-hook '(lambda () (when (not global-emacs-idle)
                                     (setq global-emacs-idle "exit")
@@ -102,8 +97,7 @@ with smart-mode-line)."
                                         (get-string-from-file global-emacs-process-file))
                                        1))
                                      nil global-emacs-process-file)
-                                    (message nil)
-                                    )))
+                                    (message nil))))
 
 (run-with-idle-timer global-emacs-idle-time t '(lambda () (when (not global-emacs-idle)
                                                        (setq global-emacs-buffer-message (current-message))
@@ -116,15 +110,12 @@ with smart-mode-line)."
                                                           1))
                                                         nil global-emacs-process-file)
                                                        (message nil)
-                                                       (message global-emacs-buffer-message)
-                                                       )))
-
+                                                       (message global-emacs-buffer-message))))
 
 (run-with-idle-timer 0.5 t '(lambda () (setq global-emacs-emacsen 
                                         (+ (length (dired-async-processes))
                                            (string-to-number 
-                                            (get-string-from-file global-emacs-process-file))
-                                           ))))
+                                            (get-string-from-file global-emacs-process-file))))))
 
 (define-minor-mode global-emacs-mode
     "Notify mode-line that an async process run."
