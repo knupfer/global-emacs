@@ -52,6 +52,7 @@ Lower values are more precise but less friendly for the CPU."
   :type 'string
   )
 
+(defvar global-emacs-buffer-message nil)
 
 (defun get-string-from-file (filePath)
   "Return filePath's file content."
@@ -71,6 +72,7 @@ Lower values are more precise but less friendly for the CPU."
   (write-region "1" nil global-emacs-process-file))
 
 (add-hook 'pre-command-hook '(lambda () (when (equal (eval knu/idle) t)
+                                     (setq global-emacs-buffer-message (current-message))
                                      (setq knu/idle nil)
                                      (write-region 
                                       (number-to-string
@@ -79,6 +81,7 @@ Lower values are more precise but less friendly for the CPU."
                                          (get-string-from-file global-emacs-process-file))
                                         1))
                                       nil global-emacs-process-file)
+                                     (message global-emacs-buffer-message)
                                      )))
 
 (add-hook 'kill-emacs-hook '(lambda () (when (equal (eval knu/idle) nil)
@@ -90,18 +93,21 @@ Lower values are more precise but less friendly for the CPU."
                                         (get-string-from-file global-emacs-process-file))
                                        1))
                                      nil global-emacs-process-file)
+                                    (message nil)
                                     )))
 
 (run-with-idle-timer global-emacs-idle-time t '(lambda () (when (equal (eval knu/idle) nil)
-                                   (setq knu/idle t)
-                                     (write-region 
-                                      (number-to-string
-                                       (-
-                                        (string-to-number
-                                         (get-string-from-file global-emacs-process-file))
-                                        1))
-                                      nil global-emacs-process-file)
-                                     )))
+                                                       (setq global-emacs-buffer-message (current-message))
+                                                       (setq knu/idle t)
+                                                       (write-region 
+                                                        (number-to-string
+                                                         (-
+                                                          (string-to-number
+                                                           (get-string-from-file global-emacs-process-file))
+                                                          1))
+                                                        nil global-emacs-process-file)
+                                                       (message global-emacs-buffer-message)
+                                                       )))
 
 (define-minor-mode dired-async-mode
     "Notify mode-line that an async process run."
