@@ -26,6 +26,17 @@
                                       nil "~/global-emacs")
                                      )))
 
+(add-hook 'kill-emacs-hook '(lambda () (when (equal (eval knu/idle) nil)
+                                    (setq knu/idle "exit")
+                                    (write-region 
+                                     (number-to-string
+                                      (-
+                                       (string-to-number
+                                        (get-string-from-file "~/global-emacs"))
+                                       1))
+                                     nil "~/global-emacs")
+                                    )))
+
 (run-with-idle-timer 10 t '(lambda () (when (equal (eval knu/idle) nil)
                                    (setq knu/idle t)
                                      (write-region 
