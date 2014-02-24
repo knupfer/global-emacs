@@ -115,24 +115,22 @@ Lower values are more precise but less friendly for the CPU."
 
 
 (run-with-idle-timer 0.5 t '(lambda () (setq global-emacs-emacsen 
-
-
-(+ (length (dired-async-processes))
-                                         (string-to-number (get-string-from-file global-emacs-process-file)))
-
-
-))
-
-)
+                                        (+ (length (dired-async-processes))
+                                           (string-to-number 
+                                            (get-string-from-file global-emacs-process-file))
+                                           ))))
 
 (define-minor-mode global-emacs-mode
     "Notify mode-line that an async process run."
-  :group 'global-emacs
-  :global t
-  :lighter (:eval (propertize (format " [%s emacsen busy]" global-emacs-emacsen)
-                              'face 'dired-async-mode-message))
-  (unless global-emacs-mode
-    (let ((visible-bell t)) (ding))))
+    :group 'global-emacs
+    :global t
+    :lighter (:eval (if (equal global-emacs-emacsen 1) (propertize (format " [one emacs busy]" global-emacs-emacsen)
+                                'face 'dired-async-mode-message)
+                      (if (> global-emacs-emacsen 1) (propertize (format " [%s emacsen busy]" global-emacs-emacsen)
+                                  'face 'dired-async-mode-message))
+                      ))
+    (unless global-emacs-mode
+      (let ((visible-bell t)) (ding))))
 
 (provide 'global-emacs)
 
