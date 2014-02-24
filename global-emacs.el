@@ -32,7 +32,7 @@
 
 ;;; Code:
 
-(require 'dired-async)
+;(require 'dired-async)
 
 (defgroup global-emacs nil
   "Unify multiple emacsen by sharing killrings and showing if
@@ -53,6 +53,8 @@ Lower values are more precise but less friendly for the CPU."
   )
 
 (defvar global-emacs-buffer-message nil)
+(defvar global-emacs-emacsen 1)
+(defvar global-emacs-idle nil)
 
 (defun get-string-from-file (filePath)
   "Return filePath's file content."
@@ -60,7 +62,7 @@ Lower values are more precise but less friendly for the CPU."
     (insert-file-contents filePath)
     (buffer-string)))
 
-(defvar knu/idle nil)
+
 (if (file-exists-p global-emacs-process-file)
     (write-region 
      (number-to-string
@@ -71,9 +73,9 @@ Lower values are more precise but less friendly for the CPU."
      nil global-emacs-process-file)
   (write-region "1" nil global-emacs-process-file))
 
-(add-hook 'pre-command-hook '(lambda () (when knu/idle
+(add-hook 'pre-command-hook '(lambda () (when global-emacs-idle
                                      (setq global-emacs-buffer-message (current-message))
-                                     (setq knu/idle nil)
+                                     (setq global-emacs-idle nil)
                                      (write-region 
                                       (number-to-string
                                        (+
@@ -85,8 +87,8 @@ Lower values are more precise but less friendly for the CPU."
                                      (message global-emacs-buffer-message)
                                      )))
 
-(add-hook 'kill-emacs-hook '(lambda () (when (not knu/idle)
-                                    (setq knu/idle "exit")
+(add-hook 'kill-emacs-hook '(lambda () (when (not global-emacs-idle)
+                                    (setq global-emacs-idle "exit")
                                     (write-region 
                                      (number-to-string
                                       (-
@@ -97,9 +99,9 @@ Lower values are more precise but less friendly for the CPU."
                                     (message nil)
                                     )))
 
-(run-with-idle-timer global-emacs-idle-time t '(lambda () (when (not knu/idle)
+(run-with-idle-timer global-emacs-idle-time t '(lambda () (when (not global-emacs-idle)
                                                        (setq global-emacs-buffer-message (current-message))
-                                                       (setq knu/idle t)
+                                                       (setq global-emacs-idle t)
                                                        (write-region 
                                                         (number-to-string
                                                          (-
@@ -111,15 +113,25 @@ Lower values are more precise but less friendly for the CPU."
                                                        (message global-emacs-buffer-message)
                                                        )))
 
-(define-minor-mode dired-async-mode
+
+(run-with-idle-timer 0.5 t '(lambda () (setq global-emacs-emacsen 
+
+
+(+ (length (dired-async-processes))
+                                         (string-to-number (get-string-from-file global-emacs-process-file)))
+
+
+))
+
+)
+
+(define-minor-mode global-emacs-mode
     "Notify mode-line that an async process run."
-  :group 'dired-async
+  :group 'global-emacs
   :global t
-  :lighter (:eval (propertize (format " [%s Async job(s) running]"
-                                      (+ (length (dired-async-processes))
-                                         (string-to-number (get-string-from-file global-emacs-process-file))))
+  :lighter (:eval (propertize (format " [%s emacsen busy]" global-emacs-emacsen)
                               'face 'dired-async-mode-message))
-  (unless dired-async-mode
+  (unless global-emacs-mode
     (let ((visible-bell t)) (ding))))
 
 (provide 'global-emacs)
