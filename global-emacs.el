@@ -40,3 +40,14 @@
                                         1))
                                       nil "~/global-emacs")
                                      )))
+
+(define-minor-mode dired-async-mode
+    "Notify mode-line that an async process run."
+  :group 'dired-async
+  :global t
+  :lighter (:eval (propertize (format " [%s Async job(s) running]"
+                                      (+ (length (dired-async-processes))
+                                         (string-to-number (get-string-from-file "~/global-emacs"))))
+                              'face 'dired-async-mode-message))
+  (unless dired-async-mode
+    (let ((visible-bell t)) (ding))))
