@@ -59,9 +59,16 @@ Lower values are more precise but less friendly for the CPU."
     (insert-file-contents filePath)
     (buffer-string)))
 
-(defvar knu/idle t)
-(when (not (file-exists-p global-emacs-process-file))
-      (write-region "0" nil global-emacs-process-file))
+(defvar knu/idle nil)
+(if (file-exists-p global-emacs-process-file)
+    (write-region 
+     (number-to-string
+      (+
+       (string-to-number
+        (get-string-from-file global-emacs-process-file))
+       1))
+     nil global-emacs-process-file)
+  (write-region "1" nil global-emacs-process-file))
 
 (add-hook 'pre-command-hook '(lambda () (when (equal (eval knu/idle) t)
                                      (setq knu/idle nil)
