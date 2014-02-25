@@ -66,6 +66,7 @@ with smart-mode-line)."
 (defvar global-emacs-mode-line-message nil)
 (defvar global-emacs-kill-ring-tmp nil)
 (defvar global-emacs-kill-ring-to-be-read nil)
+(defvar global-emacs-mode-line-lock nil)
 
 (defun get-string-from-file (filePath)
   "Return filePath's file content."
@@ -82,16 +83,22 @@ Take change and set global-emacs-idle to change."
                               (get-string-from-file global-emacs-process-file))))
   (write-region (number-to-string global-emacs-emacsen)
    nil global-emacs-process-file)
-  (global-emacs-update-mode-line)
+  (global-emacs-update-mode-line nil)
   (message global-emacs-buffer-message))
 
-(defun global-emacs-update-mode-line ()
+(defun global-emacs-update-mode-line (special-msg)
   "Updates the message of the modeline."
-  (if (= global-emacs-emacsen 1)
-      (setq global-emacs-mode-line-message "  [one emacs busy] ")
-    (if (= global-emacs-emacsen 0) 
-        (setq global-emacs-mode-line-message "  [no emacs works] ")
-      (setq global-emacs-mode-line-message (format "  [%s emacsen busy] " global-emacs-emacsen)))))
+  (when special-msg 
+    (setq global-emacs-mode-line-lock t)
+    (setq global-emacs-mode-line-message (format "  [%s] " special-msg))
+    (run-at-time "4 sec" nil '(lambda () (setq global-emacs-mode-line-lock nil)
+                                 (global-emacs-update-modenline nil))))
+  (when (not global-emacs-mode-line-lock)
+    (if (= global-emacs-emacsen 1)
+        (setq global-emacs-mode-line-message "  [one emacs busy] ")
+      (if (= global-emacs-emacsen 0) 
+          (setq global-emacs-mode-line-message "  [no emacs works] ")
+        (setq global-emacs-mode-line-message (format "  [%s emacsen busy] " global-emacs-emacsen))))))
 
 (defun global-emacs-kill-ring-save ()
   "Exchanges the kill-ring between all emacsen."
@@ -99,7 +106,7 @@ Take change and set global-emacs-idle to change."
   (when (not (equal global-emacs-kill-ring-tmp kill-ring))
     (write-region (concat "(setq kill-ring '" (format "%S" kill-ring) ")") nil global-emacs-kill-ring-file)
     (setq global-emacs-kill-ring-tmp kill-ring)
-    (setq global-emacs-mode-line-message "  [save kill-ring] "))
+    (global-emacs-update-mode-line "save kill-ring"))
     (message nil))
 
 (defun global-emacs-kill-ring-read ()
@@ -108,9 +115,8 @@ Take change and set global-emacs-idle to change."
   (load global-emacs-kill-ring-file t)
   (when (not (equal global-emacs-kill-ring-tmp kill-ring))
     (setq global-emacs-kill-ring-tmp kill-ring)
-    (setq global-emacs-mode-line-message "  [load kill-ring] "))
+    (global-emacs-update-mode-line "load kill-ring"))
     (message nil))
-
 
 (define-minor-mode global-emacs-mode
   "Notify mode-line that an async process run."
