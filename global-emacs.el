@@ -43,10 +43,16 @@ Lower values are more precise but less friendly for the CPU."
   :group 'global-emacs
   :type 'integer)
 
-(defcustom global-emacs-process-file "~/.emacs.d/global-emacs"
+(defcustom global-emacs-process-file "~/.emacs.d/global-emacs-emacsen"
   "File which saves emacs working states."
   :group 'global-emacs
   :type 'string)
+
+(defcustom global-emacs-kill-ring-file "~/.emacs.d/global-emacs-kills"
+  "File which saves emacs kill-ring."
+  :group 'global-emacs
+  :type 'string)
+
 
 (defface global-emacs-mode-line
     '((t ()))
@@ -58,6 +64,7 @@ with smart-mode-line)."
 (defvar global-emacs-emacsen nil)
 (defvar global-emacs-idle nil)
 (defvar global-emacs-mode-line-message nil)
+(defvar global-emacs-kill-ring-tmp nil)
 
 (defun get-string-from-file (filePath)
   "Return filePath's file content."
@@ -85,6 +92,13 @@ Take change and set global-emacs-idle to change."
         (setq global-emacs-mode-line-message "  [no emacs works] ")
       (setq global-emacs-mode-line-message (format "  [%s emacsen busy] " global-emacs-emacsen)))))
 
+(defun global-emacs-kill-ring-save ()
+  "Exchanges the kill-ring between all emacsen."
+  (interactive)
+  (when (not (equal (format "%s" global-emacs-kill-ring-tmp) (format "%S" kill-ring)))
+    (write-region (format "%S" kill-ring) nil global-emacs-kill-ring-file)
+    (setq global-emacs-kill-ring-tmp (format "%S" kill-ring))))
+
 (define-minor-mode global-emacs-mode
   "Notify mode-line that an async process run."
   :group 'global-emacs
@@ -98,7 +112,7 @@ Take change and set global-emacs-idle to change."
   (add-hook 'kill-emacs-hook '(lambda () (when (not global-emacs-idle) (global-emacs-change-count -1 t))))
   (run-with-idle-timer global-emacs-idle-time t '(lambda () (when (not global-emacs-idle) (global-emacs-change-count -1 t))))
   (run-with-idle-timer 15 t '(lambda () (setq global-emacs-mode-line-message "  [ disconnected ] "))))
-
+  (run-with-idle-timer 2 t '(lambda () (global-emacs-kill-ring-save)))
 (provide 'global-emacs)
 
 ;;; global-emacs.el ends here
