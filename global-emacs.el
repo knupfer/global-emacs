@@ -56,9 +56,9 @@ with smart-mode-line)."
   :group 'global-emacs)
 
 (defvar global-emacs-buffer-message nil)
-(defvar global-emacs-emacsen 1)
+(defvar global-emacs-emacsen 0)
 (defvar global-emacs-idle nil)
-(defvar global-emacs-mode-line-message "baf-me  ")
+(defvar global-emacs-mode-line-message nil)
 
 (defun get-string-from-file (filePath)
   "Return filePath's file content."
@@ -66,48 +66,35 @@ with smart-mode-line)."
     (insert-file-contents filePath)
     (buffer-string)))
 
-(if (file-exists-p global-emacs-process-file)
-    (write-region 
-     (number-to-string
-      (+
-       (string-to-number
-        (get-string-from-file global-emacs-process-file))
-       1))
-     nil global-emacs-process-file)
-  (write-region "1" nil global-emacs-process-file))
-
 (defun global-emacs-change-count (counter change)
   "Take counter and change number of processes accordingly.
 Take change and set global-emacs-idle to change."
   (setq global-emacs-buffer-message (current-message))
   (setq global-emacs-idle change)
-  (setq global-emacs-mode-line-message (format "  [%s emacsen busy] " global-emacs-emacsen))
+  (setq global-emacs-emacsen (string-to-number
+                              (get-string-from-file global-emacs-process-file)))
   (write-region 
    (number-to-string
-    (+
-     (string-to-number
-      (get-string-from-file global-emacs-process-file))
+    (+ global-emacs-emacsen
      counter))
    nil global-emacs-process-file)
+  (setq global-emacs-mode-line-message (format "  [%s emacsen busy] " (+ global-emacs-emacsen counter)))
   (message nil)
   (message global-emacs-buffer-message))
 
-(add-hook 'pre-command-hook '(lambda () (when global-emacs-idle (global-emacs-change-count 1 nil))))
-
-(add-hook 'kill-emacs-hook '(lambda () (when (not global-emacs-idle) (global-emacs-change-count -1 t))))
-
-(run-with-idle-timer global-emacs-idle-time t '(lambda () (when (not global-emacs-idle) (global-emacs-change-count -1 t))))
-
-(run-with-idle-timer 0.5 t '(lambda () (setq global-emacs-emacsen 
-                                        (+ (length (dired-async-processes))
-                                           (string-to-number 
-                                            (get-string-from-file global-emacs-process-file))))))
-
 (define-minor-mode global-emacs-mode
-    "Notify mode-line that an async process run."
-    :group 'global-emacs
-    :global t
-    :lighter (:eval (propertize global-emacs-mode-line-message 'face 'global-emacs-mode-line)))
+  "Notify mode-line that an async process run."
+  :group 'global-emacs
+  :global t
+  :lighter (:eval (propertize global-emacs-mode-line-message 'face 'global-emacs-mode-line))
+  
+  (if (file-exists-p global-emacs-process-file)
+      (global-emacs-change-count 1 nil)
+    (write-region "1" nil global-emacs-process-file))    
+  (add-hook 'pre-command-hook '(lambda () (when global-emacs-idle (global-emacs-change-count 1 nil))))
+  (add-hook 'kill-emacs-hook '(lambda () (when (not global-emacs-idle) (global-emacs-change-count -1 t))))
+  (run-with-idle-timer global-emacs-idle-time t '(lambda () (when (not global-emacs-idle) (global-emacs-change-count -1 t))))
+  (run-with-idle-timer 15 t '(lambda () (setq global-emacs-mode-line-message "  [ disconnected ] "))))
 
 (provide 'global-emacs)
 
