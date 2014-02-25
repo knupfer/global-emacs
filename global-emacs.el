@@ -65,6 +65,7 @@ with smart-mode-line)."
 (defvar global-emacs-idle nil)
 (defvar global-emacs-mode-line-message nil)
 (defvar global-emacs-kill-ring-tmp nil)
+(defvar global-emacs-kill-ring-to-be-read nil)
 
 (defun get-string-from-file (filePath)
   "Return filePath's file content."
@@ -120,12 +121,15 @@ Take change and set global-emacs-idle to change."
   (if (file-exists-p global-emacs-process-file)
       (global-emacs-change-count 1 nil)
     (write-region "1" nil global-emacs-process-file))    
-  (add-hook 'pre-command-hook '(lambda () (when global-emacs-idle (global-emacs-change-count 1 nil))))
+  (add-hook 'pre-command-hook '(lambda () (when global-emacs-idle (global-emacs-change-count 1 nil))
+                                 (when global-emacs-kill-ring-to-be-read 
+                                   (setq global-emacs-kill-ring-to-be-read nil)
+                                   (global-emacs-kill-ring-read))))
   (add-hook 'kill-emacs-hook '(lambda () (when (not global-emacs-idle) (global-emacs-change-count -1 t))))
   (run-with-idle-timer global-emacs-idle-time t '(lambda () (when (not global-emacs-idle) (global-emacs-change-count -1 t))))
   (run-with-idle-timer 15 t '(lambda () (setq global-emacs-mode-line-message "  [ disconnected ] ")))
-  (run-with-idle-timer 0.5 t '(lambda () (global-emacs-kill-ring-save)))
-  (run-with-idle-timer 2 t '(lambda () (global-emacs-kill-ring-read))))
+  (run-with-idle-timer 1 t '(lambda () (global-emacs-kill-ring-save)))
+  (run-with-idle-timer 2 t '(lambda () (setq global-emacs-kill-ring-to-be-read t))))
 
 (provide 'global-emacs)
 
