@@ -48,7 +48,7 @@ Lower values are more precise but less friendly for the CPU."
   :group 'global-emacs
   :type 'string)
 
-(defcustom global-emacs-kill-ring-file "~/.emacs.d/global-emacs-kills"
+(defcustom global-emacs-kill-ring-file "~/.emacs.d/global-emacs-kills.el"
   "File which saves emacs kill-ring."
   :group 'global-emacs
   :type 'string)
@@ -95,9 +95,15 @@ Take change and set global-emacs-idle to change."
 (defun global-emacs-kill-ring-save ()
   "Exchanges the kill-ring between all emacsen."
   (interactive)
-  (when (not (equal (format "%s" global-emacs-kill-ring-tmp) (format "%S" kill-ring)))
-    (write-region (format "%S" kill-ring) nil global-emacs-kill-ring-file)
-    (setq global-emacs-kill-ring-tmp (format "%S" kill-ring))))
+  (when (not (equal global-emacs-kill-ring-tmp kill-ring))
+    (write-region (concat "(setq kill-ring '" (format "%S" kill-ring) ")") nil global-emacs-kill-ring-file)
+    (setq global-emacs-kill-ring-tmp kill-ring)
+    (message "save")))
+
+(defun global-emacs-kill-ring-read ()
+  "Reads shared kill-ring."
+  (interactive)
+  (load global-emacs-kill-ring-file t))
 
 (define-minor-mode global-emacs-mode
   "Notify mode-line that an async process run."
@@ -111,8 +117,12 @@ Take change and set global-emacs-idle to change."
   (add-hook 'pre-command-hook '(lambda () (when global-emacs-idle (global-emacs-change-count 1 nil))))
   (add-hook 'kill-emacs-hook '(lambda () (when (not global-emacs-idle) (global-emacs-change-count -1 t))))
   (run-with-idle-timer global-emacs-idle-time t '(lambda () (when (not global-emacs-idle) (global-emacs-change-count -1 t))))
-  (run-with-idle-timer 15 t '(lambda () (setq global-emacs-mode-line-message "  [ disconnected ] "))))
-  (run-with-idle-timer 2 t '(lambda () (global-emacs-kill-ring-save)))
+  (run-with-idle-timer 15 t '(lambda () (setq global-emacs-mode-line-message "  [ disconnected ] ")))
+  (run-with-idle-timer 0.5 t '(lambda () (global-emacs-kill-ring-save)
+                                (message nil)))
+  (run-with-idle-timer 2 t '(lambda () (global-emacs-kill-ring-read)
+                              (message nil))))
+
 (provide 'global-emacs)
 
 ;;; global-emacs.el ends here
