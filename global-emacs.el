@@ -98,12 +98,18 @@ Take change and set global-emacs-idle to change."
   (when (not (equal global-emacs-kill-ring-tmp kill-ring))
     (write-region (concat "(setq kill-ring '" (format "%S" kill-ring) ")") nil global-emacs-kill-ring-file)
     (setq global-emacs-kill-ring-tmp kill-ring)
-    (message "save")))
+    (setq global-emacs-mode-line-message "  [save kill-ring] "))
+    (message nil))
 
 (defun global-emacs-kill-ring-read ()
   "Reads shared kill-ring."
   (interactive)
-  (load global-emacs-kill-ring-file t))
+  (load global-emacs-kill-ring-file t)
+  (when (not (equal global-emacs-kill-ring-tmp kill-ring))
+    (setq global-emacs-kill-ring-tmp kill-ring)
+    (setq global-emacs-mode-line-message "  [load kill-ring] "))
+    (message nil))
+
 
 (define-minor-mode global-emacs-mode
   "Notify mode-line that an async process run."
@@ -118,10 +124,8 @@ Take change and set global-emacs-idle to change."
   (add-hook 'kill-emacs-hook '(lambda () (when (not global-emacs-idle) (global-emacs-change-count -1 t))))
   (run-with-idle-timer global-emacs-idle-time t '(lambda () (when (not global-emacs-idle) (global-emacs-change-count -1 t))))
   (run-with-idle-timer 15 t '(lambda () (setq global-emacs-mode-line-message "  [ disconnected ] ")))
-  (run-with-idle-timer 0.5 t '(lambda () (global-emacs-kill-ring-save)
-                                (message nil)))
-  (run-with-idle-timer 2 t '(lambda () (global-emacs-kill-ring-read)
-                              (message nil))))
+  (run-with-idle-timer 0.5 t '(lambda () (global-emacs-kill-ring-save)))
+  (run-with-idle-timer 2 t '(lambda () (global-emacs-kill-ring-read))))
 
 (provide 'global-emacs)
 
