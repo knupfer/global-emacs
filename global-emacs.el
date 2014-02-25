@@ -32,7 +32,6 @@
 
 ;;; Code:
 
-;(require 'dired-async)
 
 (defgroup global-emacs nil
   "Unify multiple emacsen by sharing killrings and showing if
@@ -56,7 +55,7 @@ with smart-mode-line)."
   :group 'global-emacs)
 
 (defvar global-emacs-buffer-message nil)
-(defvar global-emacs-emacsen 0)
+(defvar global-emacs-emacsen nil)
 (defvar global-emacs-idle nil)
 (defvar global-emacs-mode-line-message nil)
 
@@ -71,16 +70,20 @@ with smart-mode-line)."
 Take change and set global-emacs-idle to change."
   (setq global-emacs-buffer-message (current-message))
   (setq global-emacs-idle change)
-  (setq global-emacs-emacsen (string-to-number
-                              (get-string-from-file global-emacs-process-file)))
-  (write-region 
-   (number-to-string
-    (+ global-emacs-emacsen
-     counter))
+  (setq global-emacs-emacsen (+ counter (string-to-number
+                              (get-string-from-file global-emacs-process-file))))
+  (write-region (number-to-string global-emacs-emacsen)
    nil global-emacs-process-file)
-  (setq global-emacs-mode-line-message (format "  [%s emacsen busy] " (+ global-emacs-emacsen counter)))
-  (message nil)
+  (global-emacs-update-mode-line)
   (message global-emacs-buffer-message))
+
+(defun global-emacs-update-mode-line ()
+  "Updates the message of the modeline."
+  (if (= global-emacs-emacsen 1)
+      (setq global-emacs-mode-line-message "  [one emacs busy] ")
+    (if (= global-emacs-emacsen 0) 
+        (setq global-emacs-mode-line-message "  [no emacs works] ")
+      (setq global-emacs-mode-line-message (format "  [%s emacsen busy] " global-emacs-emacsen)))))
 
 (define-minor-mode global-emacs-mode
   "Notify mode-line that an async process run."
