@@ -70,7 +70,6 @@ Disabling this will result in less CPU and IO."
 with smart-mode-line)."
   :group 'global-emacs)
 
-(defvar global-emacs-buffer-message nil)
 (defvar global-emacs-emacsen nil)
 (defvar global-emacs-idle nil)
 (defvar global-emacs-mode-line-message nil)
@@ -87,14 +86,12 @@ with smart-mode-line)."
 (defun global-emacs-change-count (counter change)
   "Take counter and change number of processes accordingly.
 Take change and set global-emacs-idle to change."
-  (setq global-emacs-buffer-message (current-message))
   (setq global-emacs-idle change)
   (setq global-emacs-emacsen (+ counter (string-to-number
                                          (get-string-from-file global-emacs-process-file))))
   (write-region (number-to-string global-emacs-emacsen)
-                nil global-emacs-process-file)
-  (global-emacs-update-mode-line nil)
-  (message global-emacs-buffer-message))
+                nil global-emacs-process-file nil 'ignore)
+  (global-emacs-update-mode-line nil))
 
 (defun global-emacs-update-mode-line (special-msg)
   "Updates the message of the modeline."
