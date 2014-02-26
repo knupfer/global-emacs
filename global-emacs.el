@@ -59,6 +59,11 @@ Disabling this will result in less CPU and IO."
   :group 'global-emacs
   :type 'boolean)
 
+(defcustom global-emacs-share-kill-ring t
+  "Share kill-ring with all emacsen."
+  :group 'global-emacs
+  :type 'boolean)
+
 (defface global-emacs-mode-line
   '((t ()))
   "Face used for the mode line (this is incompatibel
@@ -130,18 +135,18 @@ Take change and set global-emacs-idle to change."
   :group 'global-emacs
   :global t
   :lighter (:eval (propertize global-emacs-mode-line-message 'face 'global-emacs-mode-line))
-  (global-emacs-kill-ring-read)
+  (when global-emacs-share-kill-ring (global-emacs-kill-ring-read))
   (if (file-exists-p global-emacs-process-file)
       (global-emacs-change-count 1 nil)
     (write-region "1" nil global-emacs-process-file))    
   (add-hook 'pre-command-hook '(lambda () (when global-emacs-idle (global-emacs-change-count 1 nil))
-                                 (when global-emacs-kill-ring-to-be-read 
+                                 (when (and global-emacs-kill-ring-to-be-read global-emacs-share-kill-ring)
                                    (setq global-emacs-kill-ring-to-be-read nil)
                                    (global-emacs-kill-ring-read))))
   (add-hook 'kill-emacs-hook '(lambda () (when (not global-emacs-idle) (global-emacs-change-count -1 t))))
   (run-with-idle-timer global-emacs-idle-time t '(lambda () (when (not global-emacs-idle) (global-emacs-change-count -1 t))
-                                                   (global-emacs-kill-ring-save)
-                                                   (setq global-emacs-kill-ring-to-be-read t)))
+                                                   (when global-emacs-share-kill-ring (global-emacs-kill-ring-save)
+                                                   (setq global-emacs-kill-ring-to-be-read t))))
   (run-with-idle-timer 15 t '(lambda () (setq global-emacs-mode-line-message "  [ disconnected ] "))))
 
 (provide 'global-emacs)
