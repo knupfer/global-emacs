@@ -53,7 +53,6 @@ Lower values are more precise but less friendly for the CPU."
   :group 'global-emacs
   :type 'string)
 
-
 (defface global-emacs-mode-line
     '((t ()))
   "Face used for the mode line (this is incompatibel
@@ -91,8 +90,8 @@ Take change and set global-emacs-idle to change."
   (when special-msg 
     (setq global-emacs-mode-line-lock t)
     (setq global-emacs-mode-line-message (format "  [%s] " special-msg))
-    (run-at-time "4 sec" nil '(lambda () (setq global-emacs-mode-line-lock nil)
-                                 (global-emacs-update-modenline nil))))
+    (run-with-timer 4 nil '(lambda () (setq global-emacs-mode-line-lock nil)
+                                 (global-emacs-update-mode-line nil))))
   (when (not global-emacs-mode-line-lock)
     (if (= global-emacs-emacsen 1)
         (setq global-emacs-mode-line-message "  [one emacs busy] ")
@@ -132,10 +131,10 @@ Take change and set global-emacs-idle to change."
                                    (setq global-emacs-kill-ring-to-be-read nil)
                                    (global-emacs-kill-ring-read))))
   (add-hook 'kill-emacs-hook '(lambda () (when (not global-emacs-idle) (global-emacs-change-count -1 t))))
-  (run-with-idle-timer global-emacs-idle-time t '(lambda () (when (not global-emacs-idle) (global-emacs-change-count -1 t))))
-  (run-with-idle-timer 15 t '(lambda () (setq global-emacs-mode-line-message "  [ disconnected ] ")))
-  (run-with-idle-timer 1 t '(lambda () (global-emacs-kill-ring-save)))
-  (run-with-idle-timer 2 t '(lambda () (setq global-emacs-kill-ring-to-be-read t))))
+  (run-with-idle-timer global-emacs-idle-time t '(lambda () (when (not global-emacs-idle) (global-emacs-change-count -1 t))
+                                                   (global-emacs-kill-ring-save)
+                                                   (setq global-emacs-kill-ring-to-be-read t)))
+  (run-with-idle-timer 15 t '(lambda () (setq global-emacs-mode-line-message "  [ disconnected ] "))))
 
 (provide 'global-emacs)
 
