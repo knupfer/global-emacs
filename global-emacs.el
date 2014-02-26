@@ -59,6 +59,12 @@ Disabling this will result in less CPU and IO."
   :group 'global-emacs
   :type 'boolean)
 
+(defcustom global-emacs-auto-redraw t
+  "Automatically redraws the display after mode-line change.
+This is over vnc quite costly."
+  :group 'global-emacs
+  :type 'boolean)
+
 (defcustom global-emacs-share-kill-ring t
   "Share kill-ring with all emacsen."
   :group 'global-emacs
@@ -105,7 +111,8 @@ Take change and set global-emacs-idle to change."
         (setq global-emacs-mode-line-message "  [one emacs busy] ")
       (if (= global-emacs-emacsen 0) 
           (setq global-emacs-mode-line-message "  [no emacs works] ")
-        (setq global-emacs-mode-line-message (format "  [%s emacsen busy] " global-emacs-emacsen))))))
+        (setq global-emacs-mode-line-message (format "  [%s emacsen busy] " global-emacs-emacsen)))))
+  (when global-emacs-auto-redraw (redraw-display)))
 
 (defun global-emacs-kill-ring-save ()
   "Exchanges the kill-ring between all emacsen."
