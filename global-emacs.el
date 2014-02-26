@@ -110,11 +110,10 @@ Take change and set global-emacs-idle to change."
 (defun global-emacs-kill-ring-read ()
   "Reads shared kill-ring."
   (interactive)
-  (load global-emacs-kill-ring-file t)
+  (load global-emacs-kill-ring-file t t)
   (when (not (equal global-emacs-kill-ring-tmp kill-ring))
     (setq global-emacs-kill-ring-tmp kill-ring)
-    (global-emacs-update-mode-line "load kill-ring"))
-    (message nil))
+    (global-emacs-update-mode-line "load kill-ring")))
 
 (define-minor-mode global-emacs-mode
   "Notify mode-line that an async process run."
