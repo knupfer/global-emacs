@@ -103,10 +103,9 @@ Take change and set global-emacs-idle to change."
   "Exchanges the kill-ring between all emacsen."
   (interactive)
   (when (not (equal global-emacs-kill-ring-tmp kill-ring))
-    (write-region (concat "(setq kill-ring '" (format "%S" kill-ring) ")") nil global-emacs-kill-ring-file)
+    (write-region (concat "(setq kill-ring '" (format "%S" (mapcar 'substring-no-properties kill-ring)) ")") nil global-emacs-kill-ring-file nil 'ignore)
     (setq global-emacs-kill-ring-tmp kill-ring)
-    (global-emacs-update-mode-line "save kill-ring"))
-    (message nil))
+    (global-emacs-update-mode-line "save kill-ring")) )
 
 (defun global-emacs-kill-ring-read ()
   "Reads shared kill-ring."
