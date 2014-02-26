@@ -60,7 +60,7 @@ Disabling this will result in less CPU and IO."
   :type 'boolean)
 
 (defface global-emacs-mode-line
-    '((t ()))
+  '((t ()))
   "Face used for the mode line (this is incompatibel
 with smart-mode-line)."
   :group 'global-emacs)
@@ -85,9 +85,9 @@ Take change and set global-emacs-idle to change."
   (setq global-emacs-buffer-message (current-message))
   (setq global-emacs-idle change)
   (setq global-emacs-emacsen (+ counter (string-to-number
-                              (get-string-from-file global-emacs-process-file))))
+                                         (get-string-from-file global-emacs-process-file))))
   (write-region (number-to-string global-emacs-emacsen)
-   nil global-emacs-process-file)
+                nil global-emacs-process-file)
   (global-emacs-update-mode-line nil)
   (message global-emacs-buffer-message))
 
@@ -97,7 +97,7 @@ Take change and set global-emacs-idle to change."
     (setq global-emacs-mode-line-lock t)
     (setq global-emacs-mode-line-message (format "  [%s] " special-msg))
     (run-with-timer 4 nil '(lambda () (setq global-emacs-mode-line-lock nil)
-                                 (global-emacs-update-mode-line nil))))
+                             (global-emacs-update-mode-line nil))))
   (when (not global-emacs-mode-line-lock)
     (if (= global-emacs-emacsen 1)
         (setq global-emacs-mode-line-message "  [one emacs busy] ")
