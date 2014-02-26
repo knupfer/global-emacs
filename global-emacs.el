@@ -112,7 +112,7 @@ Take change and set global-emacs-idle to change."
       (if (= global-emacs-emacsen 0) 
           (setq global-emacs-mode-line-message "  [no emacs works] ")
         (setq global-emacs-mode-line-message (format "  [%s emacsen busy] " global-emacs-emacsen)))))
-  (when global-emacs-auto-redraw (redraw-display)))
+  (when global-emacs-auto-redraw (redraw-modeline)))
 
 (defun global-emacs-kill-ring-save ()
   "Exchanges the kill-ring between all emacsen."
