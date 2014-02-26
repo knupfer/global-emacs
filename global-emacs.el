@@ -53,6 +53,12 @@ Lower values are more precise but less friendly for the CPU."
   :group 'global-emacs
   :type 'string)
 
+(defcustom global-emacs-kill-ring-use-properties t
+  "Use string properties in kill-ring.
+Disabling this will result in less CPU and IO."
+  :group 'global-emacs
+  :type 'boolean)
+
 (defface global-emacs-mode-line
     '((t ()))
   "Face used for the mode line (this is incompatibel
@@ -103,9 +109,13 @@ Take change and set global-emacs-idle to change."
   "Exchanges the kill-ring between all emacsen."
   (interactive)
   (when (not (equal global-emacs-kill-ring-tmp kill-ring))
-    (write-region (concat "(setq kill-ring '" (format "%S" (mapcar 'substring-no-properties kill-ring)) ")") nil global-emacs-kill-ring-file nil 'ignore)
+    (write-region (concat "(setq kill-ring '" 
+                          (if global-emacs-kill-ring-use-properties 
+                              (format "%S" kill-ring) 
+                            (format "%S" (mapcar 'substring-no-properties kill-ring))) ")")
+                  nil global-emacs-kill-ring-file nil 'ignore)
     (setq global-emacs-kill-ring-tmp kill-ring)
-    (global-emacs-update-mode-line "save kill-ring")) )
+    (global-emacs-update-mode-line "save kill-ring")))
 
 (defun global-emacs-kill-ring-read ()
   "Reads shared kill-ring."
@@ -120,7 +130,7 @@ Take change and set global-emacs-idle to change."
   :group 'global-emacs
   :global t
   :lighter (:eval (propertize global-emacs-mode-line-message 'face 'global-emacs-mode-line))
-  
+  (global-emacs-kill-ring-read)
   (if (file-exists-p global-emacs-process-file)
       (global-emacs-change-count 1 nil)
     (write-region "1" nil global-emacs-process-file))    
