@@ -37,51 +37,51 @@
   "Unify multiple emacsen by sharing killrings and showing if
 some are busy.")
 
-(defcustom global-emacs-idle-time 2
+(defcustom ge-idle-time 2
   "Time to wait until an idle emacs is declared as idle.
 Lower values are more precise but less friendly for the CPU."
   :group 'global-emacs
   :type 'integer)
 
-(defcustom global-emacs-process-file "~/.emacs.d/global-emacs-emacsen"
+(defcustom ge-process-file "~/.emacs.d/ge-emacsen"
   "File which saves emacs working states."
   :group 'global-emacs
   :type 'string)
 
-(defcustom global-emacs-kill-ring-file "~/.emacs.d/global-emacs-kills.el"
+(defcustom ge-kill-ring-file "~/.emacs.d/ge-kills.el"
   "File which saves emacs kill-ring."
   :group 'global-emacs
   :type 'string)
 
-(defcustom global-emacs-kill-ring-use-properties t
+(defcustom ge-kill-ring-use-properties t
   "Use string properties in kill-ring.
 Disabling this will result in less CPU and IO."
   :group 'global-emacs
   :type 'boolean)
 
-(defcustom global-emacs-auto-redraw t
+(defcustom ge-auto-redraw t
   "Automatically redraws the display after mode-line change.
 This is over vnc quite costly."
   :group 'global-emacs
   :type 'boolean)
 
-(defcustom global-emacs-share-kill-ring t
+(defcustom ge-share-kill-ring t
   "Share kill-ring with all emacsen."
   :group 'global-emacs
   :type 'boolean)
 
-(defface global-emacs-mode-line
+(defface ge-mode-line
   '((t ()))
   "Face used for the mode line (this is incompatibel
 with smart-mode-line)."
   :group 'global-emacs)
 
-(defvar global-emacs-emacsen nil)
-(defvar global-emacs-idle nil)
-(defvar global-emacs-mode-line-message nil)
-(defvar global-emacs-kill-ring-tmp nil)
-(defvar global-emacs-kill-ring-to-be-read nil)
-(defvar global-emacs-mode-line-lock nil)
+(defvar ge-emacsen nil)
+(defvar ge-idle nil)
+(defvar ge-mode-line-message nil)
+(defvar ge-kill-ring-tmp nil)
+(defvar ge-kill-ring-to-be-read nil)
+(defvar ge-mode-line-lock nil)
 
 (defun get-string-from-file (filePath)
   "Return filePath's file content."
@@ -89,69 +89,83 @@ with smart-mode-line)."
     (insert-file-contents filePath)
     (buffer-string)))
 
-(defun global-emacs-change-count (counter change)
+(defun ge-change-count (counter change)
   "Take counter and change number of processes accordingly.
-Take change and set global-emacs-idle to change."
-  (setq global-emacs-idle change)
-  (setq global-emacs-emacsen (+ counter (string-to-number
-                                         (get-string-from-file global-emacs-process-file))))
-  (write-region (number-to-string global-emacs-emacsen)
-                nil global-emacs-process-file nil 'ignore)
-  (global-emacs-update-mode-line nil))
+Take change and set ge-idle to change."
+  (setq ge-idle change)
+  (setq ge-emacsen (+ counter (string-to-number
+                                         (get-string-from-file
+                                          ge-process-file))))
+  (write-region (number-to-string ge-emacsen)
+                nil ge-process-file nil 'ignore)
+  (ge-update-mode-line nil))
 
-(defun global-emacs-update-mode-line (special-msg)
+(defun ge-update-mode-line (special-msg)
   "Updates the message of the modeline."
   (when special-msg 
-    (setq global-emacs-mode-line-lock t)
-    (setq global-emacs-mode-line-message (format "  [%s] " special-msg))
-    (run-with-timer 4 nil '(lambda () (setq global-emacs-mode-line-lock nil)
-                             (global-emacs-update-mode-line nil))))
-  (when (not global-emacs-mode-line-lock)
-    (if (= global-emacs-emacsen 1)
-        (setq global-emacs-mode-line-message "  [one emacs busy] ")
-      (if (= global-emacs-emacsen 0) 
-          (setq global-emacs-mode-line-message "  [no emacs works] ")
-        (setq global-emacs-mode-line-message (format "  [%s emacsen busy] " global-emacs-emacsen)))))
-  (when global-emacs-auto-redraw (redraw-modeline)))
+    (setq ge-mode-line-lock t)
+    (setq ge-mode-line-message (format "  [%s] " special-msg))
+    (run-with-timer 4 nil '(lambda () (setq ge-mode-line-lock nil)
+                             (ge-update-mode-line nil))))
+  (when (not ge-mode-line-lock)
+    (if (= ge-emacsen 1)
+        (setq ge-mode-line-message "  [one emacs busy] ")
+      (if (= ge-emacsen 0) 
+          (setq ge-mode-line-message "  [no emacs works] ")
+        (setq ge-mode-line-message
+              (format "  [%s emacsen busy] " ge-emacsen)))))
+  (when ge-auto-redraw (redraw-modeline)))
 
-(defun global-emacs-kill-ring-save ()
+(defun ge-kill-ring-save ()
   "Exchanges the kill-ring between all emacsen."
   (interactive)
-  (when (not (equal global-emacs-kill-ring-tmp kill-ring))
-    (write-region (concat "(setq kill-ring '" 
-                          (if global-emacs-kill-ring-use-properties 
-                              (format "%S" kill-ring) 
-                            (format "%S" (mapcar 'substring-no-properties kill-ring))) ")")
-                  nil global-emacs-kill-ring-file nil 'ignore)
-    (setq global-emacs-kill-ring-tmp kill-ring)
-    (global-emacs-update-mode-line "save kill-ring")))
+  (when (not (equal ge-kill-ring-tmp kill-ring))
+    (write-region (concat
+                   "(setq kill-ring '" 
+                   (if ge-kill-ring-use-properties 
+                       (format "%S" kill-ring) 
+                     (format "%S"
+                             (mapcar 'substring-no-properties kill-ring))) ")")
+                  nil ge-kill-ring-file nil 'ignore)
+    (setq ge-kill-ring-tmp kill-ring)
+    (ge-update-mode-line "save kill-ring")))
 
-(defun global-emacs-kill-ring-read ()
+(defun ge-kill-ring-read ()
   "Reads shared kill-ring."
   (interactive)
-  (load global-emacs-kill-ring-file t t)
-  (when (not (equal global-emacs-kill-ring-tmp kill-ring))
-    (setq global-emacs-kill-ring-tmp kill-ring)
-    (global-emacs-update-mode-line "load kill-ring")))
+  (load ge-kill-ring-file t t)
+  (when (not (equal ge-kill-ring-tmp kill-ring))
+    (setq ge-kill-ring-tmp kill-ring)
+    (ge-update-mode-line "load kill-ring")))
 
-(define-minor-mode global-emacs-mode
+(define-minor-mode ge-mode
   "Notify mode-line that an async process run."
   :group 'global-emacs
   :global t
-  :lighter (:eval (propertize global-emacs-mode-line-message 'face 'global-emacs-mode-line))
-  (when global-emacs-share-kill-ring (global-emacs-kill-ring-read))
-  (if (file-exists-p global-emacs-process-file)
-      (global-emacs-change-count 1 nil)
-    (write-region "1" nil global-emacs-process-file))    
-  (add-hook 'pre-command-hook '(lambda () (when global-emacs-idle (global-emacs-change-count 1 nil))
-                                 (when (and global-emacs-kill-ring-to-be-read global-emacs-share-kill-ring)
-                                   (setq global-emacs-kill-ring-to-be-read nil)
-                                   (global-emacs-kill-ring-read))))
-  (add-hook 'kill-emacs-hook '(lambda () (when (not global-emacs-idle) (global-emacs-change-count -1 t))))
-  (run-with-idle-timer global-emacs-idle-time t '(lambda () (when (not global-emacs-idle) (global-emacs-change-count -1 t))
-                                                   (when global-emacs-share-kill-ring (global-emacs-kill-ring-save)
-                                                   (setq global-emacs-kill-ring-to-be-read t))))
-  (run-with-idle-timer 15 t '(lambda () (setq global-emacs-mode-line-message "  [ disconnected ] "))))
+  :lighter (:eval (propertize ge-mode-line-message
+                              'face 'ge-mode-line))
+  (when ge-share-kill-ring (ge-kill-ring-read))
+  (if (file-exists-p ge-process-file)
+      (ge-change-count 1 nil)
+    (write-region "1" nil ge-process-file))    
+  (add-hook 'pre-command-hook '(lambda ()
+                                 (when ge-idle (ge-change-count 1 nil))
+                                 (when (and ge-kill-ring-to-be-read
+                                            ge-share-kill-ring)
+                                   (setq ge-kill-ring-to-be-read nil)
+                                   (ge-kill-ring-read))))
+  (add-hook 'kill-emacs-hook '(lambda () (when (not ge-idle)
+                                           (ge-change-count -1 t))))
+  (run-with-idle-timer ge-idle-time t
+                       '(lambda ()
+                          (when (not ge-idle)
+                            (ge-change-count -1 t))
+                          (when ge-share-kill-ring
+                            (ge-kill-ring-save)
+                            (setq ge-kill-ring-to-be-read t))))
+  (run-with-idle-timer 15 t '(lambda ()
+                               (setq ge-mode-line-message
+                                     "  [ disconnected ] ")))) 
 
 (provide 'global-emacs)
 
