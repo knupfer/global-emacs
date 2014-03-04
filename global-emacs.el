@@ -130,7 +130,7 @@ Take change and set ge-idle-p to change."
     (setq ge-kill-ring-tmp kill-ring)
     (ge-update-mode-line "load kill-ring")))
 
-(define-minor-mode ge-mode
+(define-minor-mode global-emacs-mode
   "Notify mode-line that an async process run."
   :group 'global-emacs
   :global t
@@ -147,11 +147,11 @@ Take change and set ge-idle-p to change."
                                    (ge-kill-ring-read))))
   (add-hook 'kill-emacs-hook '(lambda () (when (not ge-idle-p)
                                            (ge-change-count -1 t))))
-  (run-with-idle-timer ge-idle-p-time t '(lambda () (when (not ge-idle-p)
-                                                      (ge-change-count -1 t))
-                                           (when ge-share-kill-ring-p
-                                             (ge-kill-ring-save)
-                                             (setq ge-read-kill-ring-p t))))
+  (run-with-idle-timer ge-idle-time t '(lambda () (when (not ge-idle-p)
+                                                    (ge-change-count -1 t))
+                                         (when ge-share-kill-ring-p
+                                           (ge-kill-ring-save)
+                                           (setq ge-read-kill-ring-p t))))
   (run-with-idle-timer 15 t '(lambda () (setq ge-mode-line-message
                                               "  [ disconnected ] ")))) 
 
