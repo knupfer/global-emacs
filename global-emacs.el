@@ -43,7 +43,7 @@ Lower values are more precise but less friendly for the CPU."
   :group 'global-emacs
   :type 'integer)
 
-(defcustom ge-process-file "~/.emacs.d/ge-emacsen"
+(defcustom ge-process-file "/tmp/ge-emacsen"
   "File which saves emacs working states."
   :group 'global-emacs
   :type 'string)
